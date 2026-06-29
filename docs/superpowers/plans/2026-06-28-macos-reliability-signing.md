@@ -374,9 +374,9 @@ git commit -m "build: add macos notarization validation scripts"
 **Files:**
 - Modify: `dist/macos/bundle/build_dist.sh.in`
 
-- [ ] **Step 1: Add optional signing after `macdeployqt`**
+- [x] **Step 1: Add optional signing after `macdeployqt`**
 
-After the release `macdeployqt` command and before moving the DMG, add:
+After the release `macdeployqt` command and before creating the DMG, add:
 
 ```sh
 if [ -n "${BARRIER_DEVELOPER_ID_APP:-}" ]; then
@@ -387,9 +387,9 @@ else
 fi
 ```
 
-- [ ] **Step 2: Add optional notarization after DMG creation**
+- [x] **Step 2: Add optional notarization after DMG creation**
 
-After `mv "Barrier.dmg" "Barrier-$B_VERSION.dmg" || exit 1`, add:
+After creating `Barrier-$B_VERSION.dmg`, add:
 
 ```sh
 if [ -n "${BARRIER_NOTARY_PROFILE:-}" ]; then
@@ -400,7 +400,7 @@ else
 fi
 ```
 
-- [ ] **Step 3: Build unsigned release DMG**
+- [x] **Step 3: Build unsigned release DMG**
 
 Run:
 
@@ -410,7 +410,9 @@ B_BUILD_TYPE=Release ./clean_build.sh
 
 Expected: build succeeds or reaches existing dependency failures; if it succeeds, output warns that signing and notarization were skipped.
 
-- [ ] **Step 4: Commit optional signing integration**
+Result on 2026-06-29: `sh -n dist/macos/bundle/build_dist.sh.in` passed. `B_BUILD_TYPE=Release ./clean_build.sh` stopped before CMake because Homebrew Qt5 is not installed; output ended with `Please install qt5`.
+
+- [x] **Step 4: Commit optional signing integration**
 
 Run:
 
