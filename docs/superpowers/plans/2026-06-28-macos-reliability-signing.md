@@ -296,7 +296,7 @@ git commit -m "build: add macos bundle signing script"
 - Create: `dist/macos/signing/notarize_dmg.sh`
 - Create: `dist/macos/signing/validate_artifact.sh`
 
-- [ ] **Step 1: Add notarization script**
+- [x] **Step 1: Add notarization script**
 
 Create `dist/macos/signing/notarize_dmg.sh`:
 
@@ -312,7 +312,7 @@ xcrun stapler staple "$DMG_PATH"
 xcrun stapler validate "$DMG_PATH"
 ```
 
-- [ ] **Step 2: Add validation script**
+- [x] **Step 2: Add validation script**
 
 Create `dist/macos/signing/validate_artifact.sh`:
 
@@ -339,7 +339,7 @@ case "$ARTIFACT" in
 esac
 ```
 
-- [ ] **Step 3: Make scripts executable**
+- [x] **Step 3: Make scripts executable**
 
 Run:
 
@@ -347,7 +347,7 @@ Run:
 chmod +x dist/macos/signing/notarize_dmg.sh dist/macos/signing/validate_artifact.sh
 ```
 
-- [ ] **Step 4: Test argument validation**
+- [x] **Step 4: Test argument validation**
 
 Run:
 
@@ -358,7 +358,9 @@ dist/macos/signing/validate_artifact.sh
 
 Expected: both commands fail with their usage messages.
 
-- [ ] **Step 5: Commit notarization scripts**
+Result on 2026-06-29: both commands failed as expected with their usage messages.
+
+- [x] **Step 5: Commit notarization scripts**
 
 Run:
 
