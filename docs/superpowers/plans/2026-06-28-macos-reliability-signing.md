@@ -426,7 +426,7 @@ git commit -m "build: wire optional macos signing into distribution"
 **Files:**
 - Create: `.github/workflows/macos-build.yml`
 
-- [ ] **Step 1: Add unsigned CI build for arm64 and universal configuration**
+- [x] **Step 1: Add unsigned CI build for arm64 and universal configuration**
 
 Create `.github/workflows/macos-build.yml`:
 
@@ -465,7 +465,7 @@ jobs:
           path: build/bundle
 ```
 
-- [ ] **Step 2: Validate workflow syntax locally if `actionlint` is installed**
+- [x] **Step 2: Validate workflow syntax locally if `actionlint` is installed**
 
 Run:
 
@@ -475,7 +475,9 @@ command -v actionlint >/dev/null && actionlint .github/workflows/macos-build.yml
 
 Expected: no output when `actionlint` is installed; otherwise the command exits successfully without validation.
 
-- [ ] **Step 3: Commit the GitHub Actions workflow**
+Result on 2026-06-29: command exited successfully with no output.
+
+- [x] **Step 3: Commit the GitHub Actions workflow**
 
 Run:
 
