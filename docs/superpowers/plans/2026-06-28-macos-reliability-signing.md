@@ -491,7 +491,7 @@ git commit -m "ci: add macos release build workflow"
 **Files:**
 - Modify: `docs/macos/build-sign-notarize.md`
 
-- [ ] **Step 1: Add release gate checklist**
+- [x] **Step 1: Add release gate checklist**
 
 Append to `docs/macos/build-sign-notarize.md`:
 
@@ -517,7 +517,7 @@ x86_64 arm64
 ```
 ````
 
-- [ ] **Step 2: Commit release gate documentation**
+- [x] **Step 2: Commit release gate documentation**
 
 Run:
 
