@@ -216,7 +216,7 @@ git commit -m "build: update macos bundle metadata"
 - Create: `dist/macos/signing/Barrier.entitlements`
 - Create: `dist/macos/signing/sign_bundle.sh`
 
-- [ ] **Step 1: Add minimal hardened runtime entitlements**
+- [x] **Step 1: Add minimal hardened runtime entitlements**
 
 Create `dist/macos/signing/Barrier.entitlements`:
 
@@ -229,7 +229,7 @@ Create `dist/macos/signing/Barrier.entitlements`:
 </plist>
 ```
 
-- [ ] **Step 2: Add recursive bundle signing script**
+- [x] **Step 2: Add recursive bundle signing script**
 
 Create `dist/macos/signing/sign_bundle.sh`:
 
@@ -259,7 +259,9 @@ codesign --verify --deep --strict --verbose=2 "$APP_PATH"
 spctl -a -vv "$APP_PATH"
 ```
 
-- [ ] **Step 3: Make the script executable**
+Implementation note on 2026-06-29: the committed script resolves the default entitlement path relative to `sign_bundle.sh`, so it also works when invoked from `build/bundle`.
+
+- [x] **Step 3: Make the script executable**
 
 Run:
 
@@ -267,7 +269,7 @@ Run:
 chmod +x dist/macos/signing/sign_bundle.sh
 ```
 
-- [ ] **Step 4: Test unsigned failure path**
+- [x] **Step 4: Test unsigned failure path**
 
 Run:
 
@@ -277,7 +279,9 @@ dist/macos/signing/sign_bundle.sh build/bundle/Barrier.app
 
 Expected: FAIL with `Set BARRIER_DEVELOPER_ID_APP`.
 
-- [ ] **Step 5: Commit signing script and entitlements**
+Result on 2026-06-29: command failed as expected with `BARRIER_DEVELOPER_ID_APP: Set BARRIER_DEVELOPER_ID_APP to a Developer ID Application identity`.
+
+- [x] **Step 5: Commit signing script and entitlements**
 
 Run:
 
