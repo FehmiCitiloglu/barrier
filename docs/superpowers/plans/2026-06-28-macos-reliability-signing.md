@@ -50,7 +50,7 @@ Barrier currently mixes old macOS runtime APIs, legacy Qt5 packaging, Azure CI, 
 **Files:**
 - Create: `docs/macos/build-sign-notarize.md`
 
-- [ ] **Step 1: Add the initial build documentation**
+- [x] **Step 1: Add the initial build documentation**
 
 Create `docs/macos/build-sign-notarize.md`:
 
@@ -109,7 +109,7 @@ dist/macos/signing/validate_artifact.sh build/bundle/Barrier-*.dmg
 ```
 ````
 
-- [ ] **Step 2: Commit the baseline documentation**
+- [x] **Step 2: Commit the baseline documentation**
 
 Run:
 
