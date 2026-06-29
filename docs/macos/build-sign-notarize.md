@@ -50,3 +50,23 @@ Validate a signed and stapled DMG:
 ```bash
 dist/macos/signing/validate_artifact.sh build/bundle/Barrier-*.dmg
 ```
+
+## Release gate
+
+A macOS release is not ready unless all commands pass:
+
+```bash
+lipo -archs build/bundle/Barrier.app/Contents/MacOS/barrier
+lipo -archs build/bundle/Barrier.app/Contents/MacOS/barrierc
+lipo -archs build/bundle/Barrier.app/Contents/MacOS/barriers
+codesign --verify --deep --strict --verbose=2 build/bundle/Barrier.app
+spctl -a -vv build/bundle/Barrier.app
+xcrun stapler validate build/bundle/Barrier-*.dmg
+spctl -a -vv -t open build/bundle/Barrier-*.dmg
+```
+
+Expected architecture output for the universal release:
+
+```text
+x86_64 arm64
+```
