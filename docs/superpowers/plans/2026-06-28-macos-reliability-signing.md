@@ -172,8 +172,9 @@ git commit -m "build: make macos architectures configurable"
 
 **Files:**
 - Modify: `src/gui/res/mac/Info.plist`
+- Modify: `dist/macos/bundle/Barrier.app/Contents/Info.plist.in`
 
-- [ ] **Step 1: Replace stale bundle identifiers and version placeholders**
+- [x] **Step 1: Replace stale bundle identifiers and version placeholders**
 
 Change the bundle identifier and version fields:
 
@@ -188,7 +189,7 @@ Change the bundle identifier and version fields:
 <string>Copyright (c) Barrier contributors</string>
 ```
 
-- [ ] **Step 2: Verify the generated bundle plist**
+- [x] **Step 2: Verify the generated bundle plist**
 
 Run:
 
@@ -198,7 +199,9 @@ plutil -p build/bundle/Barrier.app/Contents/Info.plist
 
 Expected: `CFBundleIdentifier` is `org.barrier-foss.Barrier` and both version keys match the project version.
 
-- [ ] **Step 3: Commit the bundle metadata change**
+Result on 2026-06-29: `plutil -lint` passed for both plist sources. The generated bundle check could not run because `build/bundle/Barrier.app/Contents/Info.plist` does not exist yet; local bundle generation remains blocked by missing Homebrew Qt5 from Task 2.
+
+- [x] **Step 3: Commit the bundle metadata change**
 
 Run:
 
