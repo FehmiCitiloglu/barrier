@@ -126,7 +126,7 @@ Expected: one documentation-only commit.
 - Modify: `clean_build.sh`
 - Modify: `CMakeLists.txt`
 
-- [ ] **Step 1: Update `clean_build.sh` to accept configurable macOS arch and deployment target**
+- [x] **Step 1: Update `clean_build.sh` to accept configurable macOS arch and deployment target**
 
 Replace the Darwin block in `clean_build.sh` with:
 
@@ -139,7 +139,7 @@ if [ "$(uname)" = "Darwin" ]; then
 fi
 ```
 
-- [ ] **Step 2: Raise CMake version only enough for modern macOS behavior**
+- [x] **Step 2: Raise CMake version only enough for modern macOS behavior**
 
 Change the first CMake line in `CMakeLists.txt`:
 
@@ -147,7 +147,7 @@ Change the first CMake line in `CMakeLists.txt`:
 cmake_minimum_required (VERSION 3.20)
 ```
 
-- [ ] **Step 3: Configure a universal build**
+- [x] **Step 3: Configure a universal build**
 
 Run:
 
@@ -157,7 +157,9 @@ B_BUILD_TYPE=Release B_MACOS_ARCHS="arm64;x86_64" ./clean_build.sh
 
 Expected: CMake configure output includes `CMAKE_OSX_ARCHITECTURES=arm64;x86_64`; if it fails, record the dependency or compiler error in the next commit message body.
 
-- [ ] **Step 4: Commit the build flag changes**
+Result on 2026-06-29: command stopped before CMake because Homebrew Qt5 is not installed. Output ended with `Please install qt5`; this is recorded in commit `dac44c91`.
+
+- [x] **Step 4: Commit the build flag changes**
 
 Run:
 
