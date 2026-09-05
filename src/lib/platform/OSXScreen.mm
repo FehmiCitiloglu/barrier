@@ -777,12 +777,14 @@ OSXScreen::enable()
 	}
 
 	if (!m_eventTapPort) {
-		LOG((CLOG_ERR "failed to create quartz event tap"));
+		disable();
+		throw XArch("failed to create quartz event tap; allow Accessibility and Input Monitoring in System Settings");
 	}
 
 	m_eventTapRLSR = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, m_eventTapPort, 0);
 	if (!m_eventTapRLSR) {
-		LOG((CLOG_ERR "failed to create a CFRunLoopSourceRef for the quartz event tap"));
+		disable();
+		throw XArch("failed to create a CFRunLoopSourceRef for the quartz event tap");
 	}
 
 	CFRunLoopAddSource(CFRunLoopGetCurrent(), m_eventTapRLSR, kCFRunLoopDefaultMode);
