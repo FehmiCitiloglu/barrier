@@ -1,6 +1,12 @@
 cmake_minimum_required (VERSION 3.4)
 
 find_package (Qt5 REQUIRED COMPONENTS Core Widgets Network)
+if (APPLE)
+    foreach(component Core Gui Widgets Network)
+        get_target_property(qt_library Qt5::${component} LOCATION)
+        barrier_check_architecture("${qt_library}")
+    endforeach()
+endif()
 set (CMAKE_AUTOMOC ON)
 set (CMAKE_AUTORCC ON)
 set (CMAKE_AUTOUIC ON)
@@ -174,7 +180,7 @@ if (BARRIER_BUILD_TESTS)
         ${GUI_COMMON_HEADER_FILES}
     )
 
-    add_test(guiunittests guiunittests)
+    add_test(NAME guiunittests COMMAND guiunittests)
 
     target_include_directories(guiunittests PUBLIC ../../ext)
     target_link_libraries(guiunittests gtest gmock Qt5::Core Qt5::Widgets Qt5::Network ${libs})

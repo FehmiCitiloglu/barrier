@@ -16,7 +16,30 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 cmake_minimum_required (VERSION 3.4)
+# Apple defaults must be set before compiler detection; -D overrides win.
+if (CMAKE_HOST_APPLE)
+    if (NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0" CACHE STRING "Minimum macOS version")
+    endif()
+    if (NOT CMAKE_OSX_SYSROOT)
+        execute_process(COMMAND xcrun --sdk macosx --show-sdk-path
+                        OUTPUT_VARIABLE BARRIER_MACOS_SDK OUTPUT_STRIP_TRAILING_WHITESPACE
+                        RESULT_VARIABLE BARRIER_SDK_RESULT)
+        if (NOT BARRIER_SDK_RESULT EQUAL 0)
+            message(FATAL_ERROR "Cannot discover macOS SDK with xcrun")
+        endif()
+        set(CMAKE_OSX_SYSROOT "${BARRIER_MACOS_SDK}" CACHE PATH "macOS SDK")
+    endif()
+    if (NOT CMAKE_OSX_ARCHITECTURES)
+        execute_process(COMMAND uname -m OUTPUT_VARIABLE BARRIER_HOST_ARCH
+                        OUTPUT_STRIP_TRAILING_WHITESPACE)
+        set(CMAKE_OSX_ARCHITECTURES "${BARRIER_HOST_ARCH}" CACHE STRING "macOS architecture")
+    endif()
+endif()
 project (barrier C CXX)
+if (APPLE)
+    include(cmake/MacDependencies.cmake)
+endif()
 
 option (BARRIER_BUILD_GUI "Build the GUI" ON)
 option (BARRIER_BUILD_INSTALLER "Build the installer" ON)
@@ -139,7 +162,7 @@ if (UNIX)
     endif()
 
     if (APPLE)
-        set (CMAKE_CXX_FLAGS "--sysroot ${CMAKE_OSX_SYSROOT} ${CMAKE_CXX_FLAGS} -DGTEST_USE_OWN_TR1_TUPLE=1")
+        add_definitions(-DGTEST_USE_OWN_TR1_TUPLE=1)
 
         find_library (lib_ScreenSaver ScreenSaver)
         find_library (lib_IOKit IOKit)
@@ -321,50 +344,11 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         ${OPENSSL_ROOT}/lib/ssleay32.lib
     )
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    find_program(APT_PROGRAM "apt")
-    find_program(BREW_PROGRAM "brew")
-    find_program(PORT_PROGRAM "port")
-
-    if (IS_DIRECTORY /opt/procursus AND APT_PROGRAM)
-        # procursus/apt
-        set (OPENSSL_ROOT /opt/procursus)
-
-        include_directories (BEFORE SYSTEM ${OPENSSL_ROOT}/include)
-
-        set (OPENSSL_LIBS
-            ${OPENSSL_ROOT}/lib/libssl.a
-            ${OPENSSL_ROOT}/lib/libcrypto.a
-        )
-    elseif (IS_DIRECTORY /opt/local AND PORT_PROGRAM)
-        # macports
-        set (OPENSSL_ROOT /opt/local)
-
-        set (OPENSSL_LIBS
-            ${OPENSSL_ROOT}/lib/libssl.a
-            ${OPENSSL_ROOT}/lib/libcrypto.a
-            z
-        )
-    elseif (IS_DIRECTORY /usr/local/opt/openssl AND BREW_PROGRAM)
-        # brew
-        set (OPENSSL_ROOT /usr/local/opt/openssl)
-
-        include_directories (BEFORE SYSTEM ${OPENSSL_ROOT}/include)
-
-        set (OPENSSL_LIBS
-            ${OPENSSL_ROOT}/lib/libssl.a
-            ${OPENSSL_ROOT}/lib/libcrypto.a
-        )
-    elseif (IS_DIRECTORY /opt/homebrew/opt/openssl AND BREW_PROGRAM)
-        # brew
-        set (OPENSSL_ROOT /opt/homebrew/opt/openssl)
-
-        include_directories (BEFORE SYSTEM ${OPENSSL_ROOT}/include)
-
-        set (OPENSSL_LIBS
-            ${OPENSSL_ROOT}/lib/libssl.a
-            ${OPENSSL_ROOT}/lib/libcrypto.a
-        )
-    endif()
+    find_package(OpenSSL REQUIRED)
+    include_directories(BEFORE SYSTEM ${OPENSSL_INCLUDE_DIR})
+    set(OPENSSL_LIBS OpenSSL::SSL OpenSSL::Crypto)
+    barrier_check_architecture("${OPENSSL_SSL_LIBRARY}")
+    barrier_check_architecture("${OPENSSL_CRYPTO_LIBRARY}")
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set (OPENSSL_LIBS ssl crypto)
@@ -420,10 +404,28 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set (BARRIER_BUNDLE_APP_DIR ${BARRIER_BUNDLE_DIR}/Barrier.app)
     set (BARRIER_BUNDLE_BINARY_DIR ${BARRIER_BUNDLE_APP_DIR}/Contents/MacOS)
 
+    if (NOT BARRIER_BUILD_GUI)
+        message(FATAL_ERROR "macOS packaging requires BARRIER_BUILD_GUI=ON")
+    endif()
+    find_package(Qt5 REQUIRED COMPONENTS Core Widgets Network)
+    get_target_property(qmake Qt5::qmake IMPORTED_LOCATION)
+    execute_process(COMMAND "${qmake}" -query QT_INSTALL_BINS
+                    OUTPUT_VARIABLE qt_bins OUTPUT_STRIP_TRAILING_WHITESPACE
+                    RESULT_VARIABLE qt_query_result)
+    if (NOT qt_query_result EQUAL 0)
+        message(FATAL_ERROR "Cannot query selected Qt installation")
+    endif()
+    set(BARRIER_MACDEPLOYQT "${qt_bins}/macdeployqt")
+    if (NOT EXISTS "${BARRIER_MACDEPLOYQT}")
+        message(FATAL_ERROR "Selected Qt lacks macdeployqt: ${BARRIER_MACDEPLOYQT}")
+    endif()
+    if (NOT CMAKE_OSX_ARCHITECTURES MATCHES "^(arm64|x86_64)$")
+        message(FATAL_ERROR "Test DMGs require one architecture: arm64 or x86_64")
+    endif()
     configure_files (${BARRIER_BUNDLE_SOURCE_DIR} ${BARRIER_BUNDLE_DIR})
 
     add_custom_target(Barrier_MacOS ALL
-                      bash build_dist.sh
+                      bash build_dist.sh "$<TARGET_FILE_DIR:barrier>" "$<CONFIG>"
                       DEPENDS barrier barriers barrierc
                       WORKING_DIRECTORY ${BARRIER_BUNDLE_DIR})
 endif()

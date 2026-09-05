@@ -79,3 +79,11 @@ endif()
 add_executable(integtests ${sources})
 target_link_libraries(integtests
     arch base client common io ipc mt net platform server synlib ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${libs} ${OPENSSL_LIBS})
+
+# macOS screen/input tests require interactive permission grants, tracked manually.
+if (APPLE)
+    add_test(NAME integtests COMMAND integtests --gtest_filter=-OSXScreenTests.*:OSXKeyStateTests.*)
+else()
+    add_test(NAME integtests COMMAND integtests)
+endif()
+set_tests_properties(integtests PROPERTIES TIMEOUT 180 RUN_SERIAL TRUE)

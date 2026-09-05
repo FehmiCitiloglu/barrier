@@ -94,7 +94,7 @@ specific packages.
 > A: The [most recent release](https://github.com/debauchee/barrier/releases/latest) of Barrier is known to work on:
 >  - Windows 7, 8, 8.1, 10, and 11
 >  - macOS *(previously known as OS X or Mac OS X)*  
->    - _The current GUI does **not** work on OS versions prior to macOS 10.12 Sierra (but see the related answer below)_
+>    - _The new native arm64 and Intel test DMGs require **macOS 15+**. Older published builds have different requirements (see below)_
 >  - Linux
 >  - FreeBSD
 >  - OpenBSD
@@ -105,7 +105,7 @@ specific packages.
 > A: No
 
 
-__Q: Is it possible to use Barrier on Mac OS X / OS X versions prior to 10.12?__
+__Q: Can older Barrier builds run on Mac OS X / OS X versions prior to 10.12?__
 
 > A: Not officially.
 >   - For OS X 10.10 Yosemite and later:
@@ -146,3 +146,9 @@ __Q: Is it possible to use Barrier on Mac OS X / OS X versions prior to 10.12?__
 >      - *(see [#109](https://github.com/debauchee/barrier/issues/109) and [#1251](https://github.com/debauchee/barrier/issues/1251) for status or to volunteer your talents)*
 >
 > The complete list of open issues can be found in the ['Issues' tab on GitHub](https://github.com/debauchee/barrier/issues?q=is%3Aissue+is%3Aopen). Help is always appreciated.
+
+### Native macOS test packages
+
+Apple Silicon (`arm64`) and Intel (`x86_64`) test DMGs target macOS 15+.
+See [build instructions and required acceptance checks](doc/macos-native-testing.md).
+These ad-hoc-signed builds are pending cross-platform and manual validation.
