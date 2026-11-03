@@ -14,6 +14,10 @@ if [ "$(uname)" = "Darwin" ]; then
     # OSX needs a lot of extra help, poor thing
     # run the osx_environment.sh script to fix paths
     . ./osx_environment.sh || exit 1
+    [ -n "${CMAKE_OSX_ARCHITECTURES:-}" ] && B_CMAKE_FLAGS="-DCMAKE_OSX_ARCHITECTURES=$CMAKE_OSX_ARCHITECTURES $B_CMAKE_FLAGS"
+    [ -n "${CMAKE_OSX_DEPLOYMENT_TARGET:-}" ] && B_CMAKE_FLAGS="-DCMAKE_OSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET $B_CMAKE_FLAGS"
+    [ -n "${CMAKE_PREFIX_PATH:-}" ] && B_CMAKE_FLAGS="-DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH $B_CMAKE_FLAGS"
+    [ -n "${OPENSSL_ROOT_DIR:-}" ] && B_CMAKE_FLAGS="-DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR $B_CMAKE_FLAGS"
 fi
 # allow local customizations to build environment
 [ -r ./build_env.sh ] && . ./build_env.sh
@@ -27,5 +31,5 @@ mkdir build || exit 1
 cd build || exit 1
 echo "Starting Barrier $B_BUILD_TYPE build..."
 $B_CMAKE $B_CMAKE_FLAGS .. || exit 1
-make || exit 1
+$B_CMAKE --build . --parallel || exit 1
 echo "Build completed successfully"

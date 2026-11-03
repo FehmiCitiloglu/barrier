@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-cmake_minimum_required (VERSION 3.4)
+cmake_minimum_required (VERSION 3.5...3.31)
 # Apple defaults must be set before compiler detection; -D overrides win.
 if (CMAKE_HOST_APPLE)
     if (NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)

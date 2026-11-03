@@ -1,0 +1,120 @@
+name: Release macOS (Apple Silicon & Intel)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release Tag Name (e.g. v2.4.1)'
+        required: true
+        default: 'v2.4.1'
+      is_draft:
+        description: 'Create Draft Release'
+        type: boolean
+        default: false
+      is_prerelease:
+        description: 'Mark as Pre-release'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    name: Build macOS ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            arch: arm64
+            name: 'Apple Silicon (arm64)'
+          - os: macos-15-intel
+            arch: x86_64
+            name: 'Intel (x86_64)'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build tools
+        run: python -m pip install cmake==3.31.6
+
+      - name: Install dependencies via Homebrew
+        run: brew install qt@5 openssl@3 pkgconf
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)" \
+            -DOPENSSL_ROOT_DIR="$(brew --prefix openssl@3)"
+
+      - name: Run bundle validator tests
+        run: python3 -B dist/macos/test_verify_bundle.py
+
+      - name: Build binaries and tests
+        run: cmake --build build --parallel 3
+
+      - name: Run automated tests
+        run: ctest --test-dir build --output-on-failure --timeout 180
+
+      - name: Package macOS App and DMG
+        run: cmake --build build --target Barrier_MacOS
+
+      - name: Generate SHA256 checksum
+        run: |
+          cd build/bundle
+          shasum -a 256 Barrier-*-macos-${{ matrix.arch }}.dmg > SHA256SUM-${{ matrix.arch }}.txt
+
+      - name: Upload DMG and checksum artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.arch }}-dmg
+          path: |
+            build/bundle/Barrier-*-macos-${{ matrix.arch }}.dmg
+            build/bundle/SHA256SUM-${{ matrix.arch }}.txt
+          if-no-files-found: error
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: build-macos
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all DMG artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: downloaded-artifacts
+
+      - name: Prepare release assets and consolidated checksums
+        run: |
+          mkdir -p release_assets
+          find downloaded-artifacts -name "Barrier-*.dmg" -exec cp {} release_assets/ \;
+          cat downloaded-artifacts/*/SHA256SUM-*.txt > release_assets/SHA256SUMS.txt
+          echo "=== Release Assets ==="
+          ls -lh release_assets/
+          echo "=== SHA256 Checksums ==="
+          cat release_assets/SHA256SUMS.txt
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
+          draft: ${{ github.event.inputs.is_draft == true }}
+          prerelease: ${{ github.event.inputs.is_prerelease == true }}
+          files: |
+            release_assets/Barrier-*.dmg
+            release_assets/SHA256SUMS.txt
+          generate_release_notes: true

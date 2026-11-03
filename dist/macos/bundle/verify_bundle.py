@@ -43,9 +43,11 @@ def verify(app, arch, minimum):
         for path in rpaths:
             assert path.startswith(('@loader_path/', '@executable_path/')), f'External rpath: {binary}: {path}'
             assert expand(path).resolve().is_relative_to(app), f'Escaping rpath: {path}'
+        d_out = run('otool', '-D', str(binary)).strip().splitlines()
+        dylib_id = d_out[-1].strip() if len(d_out) > 1 else ''
         for line in run('otool', '-L', str(binary)).splitlines()[1:]:
             dependency = line.strip().split(' (')[0]
-            if dependency.startswith(('/System/Library/', '/usr/lib/')):
+            if dependency == dylib_id or dependency.startswith(('/System/Library/', '/usr/lib/')):
                 continue
             if dependency.startswith('@rpath/'):
                 suffix = dependency[len('@rpath/'):]

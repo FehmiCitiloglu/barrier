@@ -19,3 +19,11 @@ if [ -z "${OPENSSL_ROOT_DIR:-}" ]; then
     fi
     export OPENSSL_ROOT_DIR
 fi
+if [ -z "${CMAKE_OSX_ARCHITECTURES:-}" ]; then
+    CMAKE_OSX_ARCHITECTURES=$(uname -m)
+    export CMAKE_OSX_ARCHITECTURES
+fi
+if [ -z "${CMAKE_OSX_DEPLOYMENT_TARGET:-}" ]; then
+    CMAKE_OSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion | cut -d. -f1).0"
+    export CMAKE_OSX_DEPLOYMENT_TARGET
+fi

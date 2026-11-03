@@ -14,6 +14,34 @@ done
 "@BARRIER_MACDEPLOYQT@" Barrier.app -always-overwrite -no-strip \
     -executable=Barrier.app/Contents/MacOS/barrierc \
     -executable=Barrier.app/Contents/MacOS/barriers
+
+# Qt 5's macdeployqt does not copy libsharpyuv (transitive dependency of modern libwebp).
+if [ -f Barrier.app/Contents/Frameworks/libwebp.7.dylib ]; then
+    if otool -L Barrier.app/Contents/Frameworks/libwebp.7.dylib | grep -q "libsharpyuv"; then
+        SHARPYUV_SRC=""
+        if command -v brew >/dev/null 2>&1; then
+            for candidate in "$(brew --prefix)/lib/libsharpyuv.0.dylib" "/opt/homebrew/lib/libsharpyuv.0.dylib" "/usr/local/lib/libsharpyuv.0.dylib"; do
+                if [ -f "$candidate" ]; then
+                    SHARPYUV_SRC="$candidate"
+                    break
+                fi
+            done
+        fi
+        if [ -n "$SHARPYUV_SRC" ] && [ -f "$SHARPYUV_SRC" ]; then
+            cp "$SHARPYUV_SRC" Barrier.app/Contents/Frameworks/
+            install_name_tool -id @executable_path/../Frameworks/libsharpyuv.0.dylib Barrier.app/Contents/Frameworks/libsharpyuv.0.dylib
+        fi
+    fi
+fi
+
+# Remove any external absolute rpaths (e.g. Homebrew cellar paths) from deployed dylibs.
+while IFS= read -r -d '' binary; do
+    if file -b "$binary" | grep -q 'Mach-O'; then
+        for ext_rpath in $(otool -l "$binary" | awk '/cmd LC_RPATH/{getline; getline; print $2}' | grep -E '^/(opt|usr/local)/'); do
+            install_name_tool -delete_rpath "$ext_rpath" "$binary" 2>/dev/null || true
+        done
+    fi
+done < <(find Barrier.app -type f -print0)
 # Relocation changes signatures. Sign nested code first, then the app seal.
 while IFS= read -r -d '' binary; do
     if file -b "$binary" | grep -q 'Mach-O'; then

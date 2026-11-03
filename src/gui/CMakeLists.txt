@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.4)
+cmake_minimum_required (VERSION 3.5...3.31)
 
 find_package (Qt5 REQUIRED COMPONENTS Core Widgets Network)
 if (APPLE)
